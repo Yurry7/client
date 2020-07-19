@@ -76,6 +76,7 @@ class WIDGETS_EXPORT RundownTreeWidget : public QWidget, Ui::RundownTreeWidget
         bool repositoryRundown;
         bool previewOnAutoStep;
         bool clearDelayedCommandsOnAutoStep;
+        bool useDropFrameNotation = false;
 
         QString page;
         QString activeRundown;
@@ -131,7 +132,9 @@ class WIDGETS_EXPORT RundownTreeWidget : public QWidget, Ui::RundownTreeWidget
         void colorizeItems(const QString& color);
         void resetOscSubscriptions();
         void configureOscSubscriptions();
+        void DurationOfSelected (void);
         QString colorLookup(const QString& color, bool reverse) const;
+        double fps = 25.0;
 
         Q_SLOT void addAtemFadeToBlackItem();
         Q_SLOT void addPlayoutCommandItem();

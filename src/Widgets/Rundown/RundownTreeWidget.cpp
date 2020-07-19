@@ -59,6 +59,8 @@
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QTreeWidgetItem>
 
+#include "Timecode.h"
+
 RundownTreeWidget::RundownTreeWidget(QWidget* parent)
     : QWidget(parent),
       active(false), enterPressed(false), allowRemoteRundownTriggering(false), repositoryRundown(false), previewOnAutoStep(false),
@@ -588,6 +590,11 @@ void RundownTreeWidget::setActive(bool active)
 
         EventManager::getInstance().fireRundownItemSelectedEvent(RundownItemSelectedEvent(command, model, currentItemWidget, currentItemWidgetParent));
         EventManager::getInstance().fireSaveAsPresetMenuEvent(SaveAsPresetMenuEvent(true));
+
+//----------- code for TC sel ----------
+        this->DurationOfSelected();
+//-------- end of code for TC sel --------
+
     }
     else // Empty rundown.
     {
@@ -1024,6 +1031,10 @@ void RundownTreeWidget::itemSelectionChanged()
         EventManager::getInstance().fireSaveAsPresetMenuEvent(SaveAsPresetMenuEvent(false));
         return;
     }
+
+//----------- code for TC sel ----------
+    this->DurationOfSelected();
+//-------- end of code for TC sel --------
 
     EventManager::getInstance().fireSaveAsPresetMenuEvent(SaveAsPresetMenuEvent(true));
 }
@@ -2103,4 +2114,87 @@ void RundownTreeWidget::clearChannelControlSubscriptionReceived(const QString& p
 
     if (this->allowRemoteRundownTriggering && arguments.count() > 0 && arguments[0].toInt() > 0)
         EventManager::getInstance().fireExecuteRundownItemEvent(ExecuteRundownItemEvent(Playout::PlayoutType::ClearChannel, this->treeWidgetRundown->currentItem()));
+}
+
+// this function calculates the duration from the selected event to the end of the rundown
+// or between two or more highlighted events
+void RundownTreeWidget::DurationOfSelected (void)
+{
+    QTreeWidgetItem* currentItem;
+    QWidget* currentItemWidget;
+    LibraryModel* model;
+    int numbersOfChildren = this->treeWidgetRundown->invisibleRootItem()->childCount();
+    int numberSelectedItems = 0;
+    double selectedDuration = 0;
+    double fromCurrentDuration = 0;
+    double groupDuration = 0;
+    double fps = 0;
+
+    for (int i = 0; i < numbersOfChildren; i++)
+    {
+        currentItem = this->treeWidgetRundown->invisibleRootItem()->child(i);
+        currentItemWidget = this->treeWidgetRundown->itemWidget(currentItem, 0);
+        if (currentItem != NULL && currentItemWidget != NULL)
+        {
+            if (dynamic_cast<AbstractRundownWidget*>(currentItemWidget)->isGroup()) //This Widget is Group
+            {
+                groupDuration = 0;
+                bool Selected = false;
+                if (currentItem->isSelected()) Selected = true;
+                int numbersOfGroupChildren = currentItem->childCount();
+                for (int i = 0; i < numbersOfGroupChildren; i++ )
+                {
+                    QTreeWidgetItem* GroupChildItem = currentItem->child(i);
+                    if (GroupChildItem->isSelected()) Selected = true;
+                    QWidget* currentGroupItemWidget = this->treeWidgetRundown->itemWidget(GroupChildItem, 0);
+                    if (GroupChildItem != NULL && currentGroupItemWidget != NULL)
+                    {
+                        if (fps == 0) fps = dynamic_cast<RundownMovieWidget*>(currentGroupItemWidget)->getFramePerSecond();
+                        qDebug("Current group clip FPS is %f ", fps);
+                        model = dynamic_cast<AbstractRundownWidget*>(currentGroupItemWidget)->getLibraryModel();
+                        double TCint = 0;
+                        QString TCstr = model->getTimecode();
+                        TCint = Timecode::toTime(TCstr, fps);
+                        groupDuration += TCint;
+                    }
+                }
+                if (Selected)
+                {
+                    selectedDuration += groupDuration;
+                    fromCurrentDuration += groupDuration;
+                    numberSelectedItems ++;
+                }
+                else if (numberSelectedItems > 0)
+                    {
+                        fromCurrentDuration += groupDuration;
+                    }
+                dynamic_cast<RundownGroupWidget*>(currentItemWidget)->setDuration(Timecode::fromTime(groupDuration ,fps, this->useDropFrameNotation));
+
+            }  //End of the Group
+            else
+            {
+                if (fps == 0) fps = dynamic_cast<RundownMovieWidget*>(currentItemWidget)->getFramePerSecond();
+                qDebug("Current clip FPS is %f ", fps);
+                model = dynamic_cast<AbstractRundownWidget*>(currentItemWidget)->getLibraryModel();
+                double TCint = 0;
+                QString TCstr = model->getTimecode();
+                TCint = Timecode::toTime(TCstr, fps);
+                if(currentItem->isSelected())
+                {
+                    selectedDuration += TCint;
+                    fromCurrentDuration += TCint;
+                    numberSelectedItems ++;
+                }
+                else if ( numberSelectedItems > 0)
+                    {
+                        fromCurrentDuration += TCint;
+                    }
+            }
+        }
+        if ( numberSelectedItems > 1)
+        {
+            fromCurrentDuration = 0;
+        }
+    }
+    EventManager::getInstance().fireDurationSelectedEvent(DurationSelectedEvent(selectedDuration, fromCurrentDuration, fps));
 }

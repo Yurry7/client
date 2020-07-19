@@ -51,6 +51,8 @@ class WIDGETS_EXPORT RundownGroupWidget : public QWidget, Ui::RundownGroupWidget
         virtual void clearDelayedCommands() {}
         virtual void setUsed(bool used);
         virtual void setSelected(bool selected);
+        virtual void setDuration(QString groupDuration);
+
 
     private:
         bool active = false;

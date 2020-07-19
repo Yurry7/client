@@ -459,7 +459,7 @@ void RundownMovieWidget::executeStop()
 
     this->widgetOscTime->setPaused(this->paused);
     QTimer::singleShot(500, this, [this]() {
-        this->widgetOscTime->reset();
+        resetOscWidget();
     });
 
     this->hasSentAutoPlay = false;
@@ -713,7 +713,7 @@ void RundownMovieWidget::executeClearVideolayer()
 
     this->widgetOscTime->setPaused(this->paused);
     QTimer::singleShot(500, this, [this]() {
-        this->widgetOscTime->reset();
+        resetOscWidget();
     });
 
     this->hasSentAutoPlay = false;
@@ -765,7 +765,7 @@ void RundownMovieWidget::executeClearChannel()
 
     this->widgetOscTime->setPaused(this->paused);
     QTimer::singleShot(500, this, [this]() {
-        this->widgetOscTime->reset();
+        resetOscWidget();
     });
 
     this->hasSentAutoPlay = false;
@@ -788,7 +788,7 @@ void RundownMovieWidget::checkDeviceConnection()
         this->labelDisconnected->setVisible(true);
     else
     {
-        this->widgetOscTime->reset();
+        resetOscWidget();
         this->labelDisconnected->setVisible(!device->isConnected());
     }
 }
@@ -1073,18 +1073,36 @@ void RundownMovieWidget::nameSubscriptionReceived(const QString& predicate, cons
     updateOscWidget();
 }
 
+void RundownMovieWidget::resetOscWidget()
+{
+this->widgetOscTime->reset();
+}
+
+
+
 void RundownMovieWidget::updateOscWidget()
 {
+    double CurrentTime =0;
     if (this->fileModel.getTime() > 0 && this->fileModel.getTotalTime() > 0 &&
         !this->fileModel.getName().isEmpty() && this->fileModel.getFramesPerSecond() > 0)
     {
         this->widgetOscTime->setFramesPerSecond(this->fileModel.getFramesPerSecond());
+        qDebug("widgetOscTime FPS is %f ", this->fileModel.getFramesPerSecond());
         this->widgetOscTime->setProgress(this->fileModel.getTime() - this->fileModel.getClip());
 
         if (this->reverseOscTime && this->fileModel.getTime() > 0)
-            this->widgetOscTime->setTime(this->fileModel.getTotalTime() - (this->fileModel.getTime() - this->fileModel.getClip()));
+        {
+            CurrentTime = this->fileModel.getTotalTime() - (this->fileModel.getTime() - this->fileModel.getClip());
+        }
         else
-            this->widgetOscTime->setTime(this->fileModel.getTime() - this->fileModel.getClip());
+        {
+            CurrentTime = this->fileModel.getTime() - this->fileModel.getClip();
+        }
+        this->widgetOscTime->setTime(CurrentTime);
+        //  code for TC **************************
+        EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(CurrentTime,this->fileModel.getFramesPerSecond(),this->command.getChannel(),this->command.getVideolayer() ));
+        //  code for TC **************************
+
 
         this->widgetOscTime->setInOutTime(this->fileModel.getClip(),
                                           this->fileModel.getTotalTime() - (this->fileModel.getTotalTime() - this->fileModel.getTotalClip()));
@@ -1213,4 +1231,11 @@ void RundownMovieWidget::clearChannelControlSubscriptionReceived(const QString& 
 
     if (this->command.getAllowRemoteTriggering() && arguments.count() > 0 && arguments[0].toInt() > 0)
         executeCommand(Playout::PlayoutType::ClearChannel);
+}
+
+double RundownMovieWidget::getFramePerSecond(void)
+{
+//    return this->fileModel.getFramesPerSecond();
+    const QStringList& channelFormats = DatabaseManager::getInstance().getDeviceByName(this->model.getDeviceName()).getChannelFormats().split(",");
+   return DatabaseManager::getInstance().getFormat(channelFormats[this->command.getChannel() - 1]).getFramesPerSecond().toDouble();
 }

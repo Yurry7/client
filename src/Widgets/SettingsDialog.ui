@@ -698,6 +698,12 @@
      <property name="text">
       <string>Show duration panel (iNews backend only)</string>
      </property>
+     <property name="autoExclusive">
+      <bool>false</bool>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">buttonDurationGroup</string>
+     </attribute>
     </widget>
     <widget class="QCheckBox" name="checkBoxUseFreezeOnLoad">
      <property name="geometry">
@@ -730,6 +736,31 @@
      <property name="text">
       <string>Use drop frame notation</string>
      </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBoxDurationCommon">
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>472</y>
+       <width>331</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="focusPolicy">
+      <enum>Qt::NoFocus</enum>
+     </property>
+     <property name="text">
+      <string>Show duration panel</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <property name="autoExclusive">
+      <bool>true</bool>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">buttonDurationGroup</string>
+     </attribute>
     </widget>
    </widget>
    <widget class="QWidget" name="tabLiveStream">
@@ -5087,6 +5118,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>checkBoxDurationCommon</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>SettingsDialog</receiver>
+   <slot>showDurationChangedCommon(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>558</x>
+     <y>513</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>349</x>
+     <y>369</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>showAddDeviceDialog()</slot>
@@ -5150,6 +5197,7 @@
   <slot>autoUpdateChanged(int)</slot>
   <slot>repositoryPortChanged()</slot>
   <slot>showDurationChanged(int)</slot>
+  <slot>showDurationChangedCommon(int)</slot>
   <slot>useFreezeOnLoadChanged(int)</slot>
   <slot>streamPortChanged()</slot>
   <slot>logLevelChanged(int)</slot>
@@ -5159,4 +5207,11 @@
   <slot>enableOscInputWebSocketChanged(int)</slot>
   <slot>oscControlPortChanged()</slot>
  </slots>
+ <buttongroups>
+  <buttongroup name="buttonDurationGroup">
+   <property name="exclusive">
+    <bool>false</bool>
+   </property>
+  </buttongroup>
+ </buttongroups>
 </ui>

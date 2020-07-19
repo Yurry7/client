@@ -90,6 +90,7 @@ INSERT INTO Configuration (Name, Value) VALUES('ShowAudioLevelsPanel', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('ShowPreviewPanel', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('ShowLivePanel', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('ShowDurationPanel', 'false');
+INSERT INTO Configuration (Name, Value) VALUES('ShowDurationPanelCommon', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('StoreThumbnailsInDatabase', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('MarkUsedItems', 'false');
 INSERT INTO Configuration (Name, Value) VALUES('UseFreezeOnLoad', 'false');

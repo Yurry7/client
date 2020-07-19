@@ -58,6 +58,7 @@ class WIDGETS_EXPORT RundownMovieWidget : public QWidget, Ui::RundownMovieWidget
         virtual void clearDelayedCommands();
         virtual void setUsed(bool used);
         virtual void setSelected(bool selected);
+        virtual double getFramePerSecond(void);
 
     private:
         bool active;
@@ -99,7 +100,7 @@ class WIDGETS_EXPORT RundownMovieWidget : public QWidget, Ui::RundownMovieWidget
         OscSubscription* clearChannelControlSubscription;
 
         ItemScheduler itemScheduler;
-
+        void resetOscWidget();
         void updateOscWidget();
         void setThumbnail();
         void checkEmptyDevice();

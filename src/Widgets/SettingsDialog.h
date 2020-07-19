@@ -101,6 +101,7 @@ class WIDGETS_EXPORT SettingsDialog : public QDialog, Ui::SettingsDialog
         Q_SLOT void networkCacheChanged(int);
         Q_SLOT void streamQualityChanged(int);
         Q_SLOT void showDurationChanged(int);
+        Q_SLOT void showDurationChangedCommon(int);
         Q_SLOT void useFreezeOnLoadChanged(int);
         Q_SLOT void useDropFrameNotationChanged(int);
 };

@@ -16,6 +16,8 @@
 #include "Events/SaveAsPresetEvent.h"
 #include "Events/StatusbarEvent.h"
 #include "Events/DurationChangedEvent.h"
+#include "Events/DurationSelectedEvent.h"
+#include "Events/DurationPlayedEvent.h"
 #include "Events/CloseApplicationEvent.h"
 #include "Events/ExportPresetMenuEvent.h"
 #include "Events/SaveAsPresetMenuEvent.h"
@@ -95,6 +97,8 @@ class CORE_EXPORT EventManager : public QObject
         Q_SIGNAL void clearDelayedCommands();
         Q_SIGNAL void currentItemChanged(const CurrentItemChangedEvent&);
         Q_SIGNAL void durationChanged(const DurationChangedEvent&);
+        Q_SIGNAL void durationSelected(const DurationSelectedEvent&);
+        Q_SIGNAL void durationPlayed(const DurationPlayedEvent&);
         Q_SIGNAL void tricasterDeviceChanged(const TriCasterDeviceChangedEvent&);
         Q_SIGNAL void atemDeviceChanged(const AtemDeviceChangedEvent&);
         Q_SIGNAL void removeItemFromAutoPlayQueue(const RemoveItemFromAutoPlayQueueEvent&);
@@ -166,6 +170,8 @@ class CORE_EXPORT EventManager : public QObject
         void fireShowAddHttpPostDataDialogEvent(const ShowAddHttpPostDataDialogEvent&);
         void fireShowAddHttpGetDataDialogEvent(const ShowAddHttpGetDataDialogEvent&);
         void fireDurationChangedEvent(const DurationChangedEvent&);
+        void fireDurationSelectedEvent(const DurationSelectedEvent&);
+        void fireDurationPlayedEvent(const DurationPlayedEvent&);
         void fireReloadRundownMenuEvent(const ReloadRundownMenuEvent&);
         void fireRepositoryRundownEvent(const RepositoryRundownEvent&);
         void fireTriCasterDeviceChangedEvent(const TriCasterDeviceChangedEvent&);

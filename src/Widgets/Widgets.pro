@@ -127,6 +127,7 @@ HEADERS += \
     Rundown/RundownFadeToBlackWidget.h \
     Inspector/InspectorFadeToBlackWidget.h \
     DurationWidget.h \
+    DurationWidgetCommon.h \
     Rundown/Panasonic/RundownPanasonicPresetWidget.h \
     Inspector/Panasonic/InspectorPanasonicPresetWidget.h \
     Rundown/RundownPerspectiveWidget.h \
@@ -286,6 +287,7 @@ SOURCES += \
     Rundown/RundownFadeToBlackWidget.cpp \
     Inspector/InspectorFadeToBlackWidget.cpp \
     DurationWidget.cpp \
+    DurationWidgetCommon.cpp \
     Rundown/Panasonic/RundownPanasonicPresetWidget.cpp \
     Inspector/Panasonic/InspectorPanasonicPresetWidget.cpp \
     Rundown/RundownPerspectiveWidget.cpp \
@@ -434,6 +436,7 @@ FORMS += \
     Rundown/RundownFadeToBlackWidget.ui \
     Inspector/InspectorFadeToBlackWidget.ui \
     DurationWidget.ui \
+    DurationWidgetCommon.ui \
     Rundown/Panasonic/RundownPanasonicPresetWidget.ui \
     Inspector/Panasonic/InspectorPanasonicPresetWidget.ui \
     Rundown/RundownPerspectiveWidget.ui \

@@ -166,6 +166,8 @@ HEADERS += \
     Events/Rundown/InsertRepositoryChangesEvent.h \
     Events/Rundown/ReloadRundownMenuEvent.h \
     Events/DurationChangedEvent.h \
+    Events/DurationSelectedEvent.h \
+    Events/DurationPlayedEvent.h \
     Commands/Panasonic/PanasonicPresetCommand.h \
     Commands/PerspectiveCommand.h \
     Commands/RotationCommand.h \
@@ -351,6 +353,8 @@ SOURCES += \
     Events/Rundown/InsertRepositoryChangesEvent.cpp \
     Events/Rundown/ReloadRundownMenuEvent.cpp \
     Events/DurationChangedEvent.cpp \
+    Events/DurationSelectedEvent.cpp \
+    Events/DurationPlayedEvent.cpp \
     Commands/Panasonic/PanasonicPresetCommand.cpp \
     Commands/PerspectiveCommand.cpp \
     Commands/RotationCommand.cpp \

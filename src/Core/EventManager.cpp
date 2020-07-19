@@ -76,6 +76,16 @@ void EventManager::fireDurationChangedEvent(const DurationChangedEvent& event)
     emit durationChanged(event);
 }
 
+void EventManager::fireDurationSelectedEvent(const DurationSelectedEvent& event)
+{
+    emit durationSelected(event);
+}
+
+void EventManager::fireDurationPlayedEvent(const DurationPlayedEvent& event)
+{
+    emit durationPlayed(event);
+}
+
 void EventManager::fireReloadRundownMenuEvent(const ReloadRundownMenuEvent& event)
 {
     emit reloadRundownMenu(event);

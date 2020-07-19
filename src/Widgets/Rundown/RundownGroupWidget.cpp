@@ -188,6 +188,11 @@ void RundownGroupWidget::setUsed(bool used)
         this->frameItem->setGraphicsEffect(NULL);
 }
 
+void RundownGroupWidget::setDuration(QString groupDuration)
+{
+    this->labelDuration->setText(QString("Duration: %1").arg(groupDuration));
+}
+
 bool RundownGroupWidget::executeCommand(Playout::PlayoutType type)
 {
     if (this->active)
