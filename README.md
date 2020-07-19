@@ -1,11 +1,11 @@
-# CasparCG Client
-
+# CasparCG Client CRN (Corona Edition)
+###[differences from the original version are described in the Wiki !](https://github.com/Yurry7/client/wiki)
 ![platforms](https://img.shields.io/badge/platforms-windows%20%7C%20linux%20%7C%20osx-brightgreen.svg?style=flat-square)
 [![help](https://img.shields.io/badge/help-community%20forum-green.svg?style=flat-square)](https://casparcg.com/forum)
 [![irc](https://img.shields.io/badge/irc-%23casparcg-green.svg?style=flat-square)](https://kiwiirc.com/client/sinisalo.freenode.net/?nick=Guest|?#CasparCG)
 [![license](https://img.shields.io/badge/license-GPLv3-blue.svg?style=flat-square)](LICENSE)
 
-<p align="center"><img src="/src/Widgets/Images/Clients.png"></p>
+<p align="center"><img src="/src/Widgets/Images/client_CRN.png"></p>
 
 
 ## Installation
@@ -14,10 +14,10 @@
 No installation required. Unpack the zip file to a location on your drive and start it. Tested on Windows 10 x64.
 
 #### macOS
-No installation required. Open the DMG file and drag the 'CasparCG Client' app to a location on your drive and start it. Tested on macOS 10.15.
+No installation required. Open the DMG file and drag the 'CasparCG Client' app to a location on your drive and start it. Not tested on macOS.
 
 #### Linux
-No installation required. Unpack the tar file to a location on your drive and run the run.sh script. Tested on Ubuntu 19.10 64-bit.
+No installation required. Unpack the tar file to a location on your drive and run the run.sh script. Not tested on Ubuntu.
 
 
 ## Branches
