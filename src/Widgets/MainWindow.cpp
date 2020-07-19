@@ -163,7 +163,7 @@ void MainWindow::setupMenu()
     this->helpMenu = new QMenu(this);
     QAction* action = this->helpMenu->addAction("View Help", this, SLOT(showHelpDialog()), QKeySequence::fromString("Ctrl+H"));
     this->helpMenu->addSeparator();
-    this->helpMenu->addAction("About CasparCG CRN Client...", this, SLOT(showAboutDialog()));
+    this->helpMenu->addAction("About CasparCG Client CRN...", this, SLOT(showAboutDialog()));
     action->setEnabled(false);
 
     this->menuBar = new QMenuBar(this);
