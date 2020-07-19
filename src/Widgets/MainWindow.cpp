@@ -143,7 +143,7 @@ void MainWindow::setupMenu()
 
     this->playoutMenu = new QMenu(this);
     this->playoutMenu->addAction("Stop", this, SLOT(executeStop()), QKeySequence::fromString("F1"));
-    this->playoutMenu->addAction("Play", this, SLOT(executePlay()), QKeySequence::fromString("F2"));
+    this->playoutMenu->addAction("Play", this, SLOT(executePlay()), QKeySequence::fromString("Space"));
     this->playoutMenu->addAction("Load", this, SLOT(executeLoad()), QKeySequence::fromString("F3"));
     this->playoutMenu->addAction("Pause / Resume", this, SLOT(executePause()), QKeySequence::fromString("F4"));
     this->playoutMenu->addSeparator();
@@ -156,7 +156,7 @@ void MainWindow::setupMenu()
     this->playoutMenu->addAction("Clear Video Layer", this, SLOT(executeClearVideolayer()), QKeySequence::fromString("F11"));
     this->playoutMenu->addAction("Clear Channel", this, SLOT(executeClearChannel()), QKeySequence::fromString("F12"));
     this->playoutMenu->addSeparator();
-    this->playoutMenu->addAction("Play Now", this, SLOT(executePlayNow()), QKeySequence::fromString("Shift+F2"));
+    this->playoutMenu->addAction("Play Now", this, SLOT(executePlayNow()), QKeySequence::fromString("Shift+Space"));
 
     this->helpMenu = new QMenu(this);
     QAction* action = this->helpMenu->addAction("View Help", this, SLOT(showHelpDialog()), QKeySequence::fromString("Ctrl+H"));
@@ -352,12 +352,12 @@ void MainWindow::executeStop()
 
 void MainWindow::executePlay()
 {
-    EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_F2, Qt::NoModifier));
+    EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier));
 }
 
 void MainWindow::executePlayNow()
 {
-    EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_F2, Qt::ShiftModifier));
+    EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_Space, Qt::ShiftModifier));
 }
 
 void MainWindow::executeLoad()

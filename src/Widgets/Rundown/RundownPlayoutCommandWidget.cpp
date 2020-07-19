@@ -204,9 +204,9 @@ void RundownPlayoutCommandWidget::executePlay()
     if (this->command.getPlayoutCommand() == Playout::toString(Playout::PlayoutType::Stop))
         EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_F1, Qt::NoModifier));
     else if (this->command.getPlayoutCommand() == Playout::toString(Playout::PlayoutType::Play))
-        EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_F2, Qt::NoModifier));
+        EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_Space, Qt::NoModifier));
     else if (this->command.getPlayoutCommand() == Playout::toString(Playout::PlayoutType::PlayNow))
-        EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_F2, Qt::ShiftModifier));
+        EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_Space, Qt::ShiftModifier));
     else if (this->command.getPlayoutCommand() == Playout::toString(Playout::PlayoutType::Load))
         EventManager::getInstance().fireExecutePlayoutCommandEvent(ExecutePlayoutCommandEvent(QEvent::KeyPress, Qt::Key_F3, Qt::NoModifier));
     else if (this->command.getPlayoutCommand() == Playout::toString(Playout::PlayoutType::PauseResume))

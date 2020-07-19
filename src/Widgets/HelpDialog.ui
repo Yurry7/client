@@ -34,7 +34,7 @@
 Function: Stop 
 Description: Call stop on selected item in the rundown.
 
-F2
+Space
 Function: Play
 Description: Call play on selected item in the rundown.
 
