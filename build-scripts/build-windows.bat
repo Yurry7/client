@@ -35,7 +35,7 @@ for /r %%x in (*.dll) do (
     if not exist "%CLIENT_FOLDER%\%CLIENT_FOLDER%\%%~nx.dll" copy "%%x" "%CLIENT_FOLDER%\%CLIENT_FOLDER%" /Y || goto :error
 )
 
-copy Shell\release\shell.exe "%CLIENT_FOLDER%\%CLIENT_FOLDER%\CasparCG Client.exe" || goto :error
+copy Shell\release\shell.exe "%CLIENT_FOLDER%\%CLIENT_FOLDER%\CasparCG Client CRN.exe" || goto :error
 
 :: Copy binary dependencies
 echo Copying binary dependencies...
