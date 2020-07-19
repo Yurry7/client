@@ -1,6 +1,6 @@
 # CasparCG Client CRN (Corona Edition)
 
-###[differences from the original version are described in the Wiki !](https://github.com/Yurry7/client/wiki)
+[differences from the original version are described in the Wiki !](https://github.com/Yurry7/client/wiki)
 
 ![platforms](https://img.shields.io/badge/platforms-windows%20%7C%20linux%20%7C%20osx-brightgreen.svg?style=flat-square)
 [![help](https://img.shields.io/badge/help-community%20forum-green.svg?style=flat-square)](https://casparcg.com/forum)
