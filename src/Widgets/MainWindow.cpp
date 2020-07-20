@@ -51,6 +51,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent)
     this->widgetAction->setVisible(false);
 
     this->splitterHorizontal->setSizes(QList<int>() << 1 << 0);
+    this->splitterVertical->setSizes(QList<int>() << 289 << 848 << 289);
 
     bool showPreviewPanel = (DatabaseManager::getInstance().getConfigurationByName("ShowPreviewPanel").getValue() == "true") ? true : false;
     this->widgetPreview->setVisible(showPreviewPanel);
