@@ -78,6 +78,8 @@ class WIDGETS_EXPORT RundownMovieWidget : public QWidget, Ui::RundownMovieWidget
         bool markUsedItems;
         bool useFreezeOnLoad;
         bool selected = false;
+        qint64 timeStamp = 0;
+        double currentCannelFPS = 0;
 
         OscFileModel fileModel;
         OscSubscription* timeSubscription;
@@ -108,7 +110,9 @@ class WIDGETS_EXPORT RundownMovieWidget : public QWidget, Ui::RundownMovieWidget
         void checkDeviceConnection();
         void configureOscSubscriptions();
         void setTimecode(const QString& timecode);
+        void setCounters();
 
+        Q_SLOT void checkState();
         Q_SLOT void channelChanged(int);
         Q_SLOT void executeClearVideolayer();
         Q_SLOT void executeClearChannel();

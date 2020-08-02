@@ -93,7 +93,7 @@ INSERT INTO Configuration (Name, Value) VALUES('ShowDurationPanel', 'false');
 INSERT INTO Configuration (Name, Value) VALUES('ShowDurationPanelCommon', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('StoreThumbnailsInDatabase', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('MarkUsedItems', 'false');
-INSERT INTO Configuration (Name, Value) VALUES('UseFreezeOnLoad', 'false');
+INSERT INTO Configuration (Name, Value) VALUES('UseFreezeOnLoad', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('DisableAudioInStream', 'true');
 INSERT INTO Configuration (Name, Value) VALUES('StreamQuality', '25');
 INSERT INTO Configuration (Name, Value) VALUES('NetworkCache', '1000');

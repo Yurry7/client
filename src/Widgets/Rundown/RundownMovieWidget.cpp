@@ -9,6 +9,7 @@
 #include "Events/ConnectionStateChangedEvent.h"
 #include "Events/Rundown/AutoPlayRundownItemEvent.h"
 #include "Utils/ItemScheduler.h"
+#include "Timecode.h"
 
 #include <QtCore/QObject>
 #include <QtCore/QFileInfo>
@@ -85,7 +86,7 @@ RundownMovieWidget::RundownMovieWidget(const LibraryModel& model, QWidget* paren
     checkDeviceConnection();
 
     configureOscSubscriptions();
-
+    currentCannelFPS = this->fileModel.getFramesPerSecond();
     this->widgetOscTime->setStartTime(this->model.getTimecode(), this->reverseOscTime);
 }
 
@@ -452,17 +453,14 @@ void RundownMovieWidget::executeStop()
         }
     }
 
-    this->paused = false;
     this->loaded = false;
+    this->paused = false;
     this->playing = false;
+
     this->sendAutoPlay= false;
-
-    this->widgetOscTime->setPaused(this->paused);
-    QTimer::singleShot(500, this, [this]() {
-        resetOscWidget();
-    });
-
     this->hasSentAutoPlay = false;
+
+    this->widgetOscTime->reset();
 }
 
 void RundownMovieWidget::executePlay()
@@ -476,43 +474,23 @@ void RundownMovieWidget::executePlay()
         }
         else
         {
-            if (this->command.getAutoPlay())
-            {
-                device->playMovie(this->command.getChannel(), this->command.getVideolayer(), this->command.getVideoName(),
-                                  this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
-                                  this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
-                                  this->command.getLoop(), true);
-            }
-            else
-            {
-                device->playMovie(this->command.getChannel(), this->command.getVideolayer(), this->command.getVideoName(),
-                                  this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
-                                  this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
-                                  this->command.getLoop(), this->command.getAutoPlay());
-            }
+            device->playMovie(this->command.getChannel(), this->command.getVideolayer(), this->command.getVideoName(),
+                              this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
+                              this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
+                              this->command.getLoop(), this->command.getAutoPlay());
         }
-    }
 
-    foreach (const DeviceModel& model, DeviceManager::getInstance().getDeviceModels())
-    {
-        if (model.getShadow() == "No")
-            continue;
-
-        const QSharedPointer<CasparDevice>  deviceShadow = DeviceManager::getInstance().getDeviceByName(model.getName());
-        if (deviceShadow != NULL && deviceShadow->isConnected())
+        foreach (const DeviceModel& model, DeviceManager::getInstance().getDeviceModels())
         {
-            if (this->loaded)
+            if (model.getShadow() == "No")
+                continue;
+
+            const QSharedPointer<CasparDevice>  deviceShadow = DeviceManager::getInstance().getDeviceByName(model.getName());
+            if (deviceShadow != NULL && deviceShadow->isConnected())
             {
-                deviceShadow->play(this->command.getChannel(), this->command.getVideolayer());
-            }
-            else
-            {
-                if (this->command.getAutoPlay())
+                if (this->loaded)
                 {
-                    deviceShadow->playMovie(this->command.getChannel(), this->command.getVideolayer(), this->command.getVideoName(),
-                                            this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
-                                            this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
-                                            this->command.getLoop(), true);
+                    deviceShadow->play(this->command.getChannel(), this->command.getVideolayer());
                 }
                 else
                 {
@@ -523,18 +501,21 @@ void RundownMovieWidget::executePlay()
                 }
             }
         }
+
+        if (this->markUsedItems)
+            setUsed(true);
+
+        this->loaded = false;
+        this->paused = false;
+        this->playing = true;
+
+        this->hasSentAutoPlay = false;
+
+        if (this->command.getAutoPlay())
+            this->sendAutoPlay= true;
+        this->timeStamp = 0;
+        updateOscWidget();
     }
-
-    if (this->markUsedItems)
-        setUsed(true);
-
-    this->paused = false;
-    this->loaded = false;
-    this->playing = true;
-    this->hasSentAutoPlay = false;
-
-    if (this->command.getAutoPlay())
-        this->sendAutoPlay= true;
 }
 
 void RundownMovieWidget::executePause()
@@ -580,27 +561,28 @@ void RundownMovieWidget::executeLoad()
                           this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
                           this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
                           this->command.getLoop(), this->command.getFreezeOnLoad(), false);
-    }
 
-    foreach (const DeviceModel& model, DeviceManager::getInstance().getDeviceModels())
-    {
-        if (model.getShadow() == "No")
-            continue;
-
-        const QSharedPointer<CasparDevice>  deviceShadow = DeviceManager::getInstance().getDeviceByName(model.getName());
-        if (deviceShadow != NULL && deviceShadow->isConnected())
+        foreach (const DeviceModel& model, DeviceManager::getInstance().getDeviceModels())
         {
-            deviceShadow->loadMovie(this->command.getChannel(), this->command.getVideolayer(), this->command.getVideoName(),
-                                    this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
-                                    this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
-                                    this->command.getLoop(), this->command.getFreezeOnLoad(), false);
-        }
-    }
+            if (model.getShadow() == "No")
+                continue;
 
-    this->loaded = true;
-    this->paused = false;
-    this->playing = false;
-    this->sendAutoPlay= false;
+            const QSharedPointer<CasparDevice>  deviceShadow = DeviceManager::getInstance().getDeviceByName(model.getName());
+            if (deviceShadow != NULL && deviceShadow->isConnected())
+            {
+                deviceShadow->loadMovie(this->command.getChannel(), this->command.getVideolayer(), this->command.getVideoName(),
+                                        this->command.getTransition(), this->command.getTransitionDuration(), this->command.getTween(),
+                                        this->command.getDirection(), this->command.getSeek(), this->command.getLength(),
+                                        this->command.getLoop(), this->command.getFreezeOnLoad(), false);
+            }
+        }
+
+        this->loaded = true;
+        this->paused = false;
+        this->playing = false;
+        this->sendAutoPlay= false;
+        setCounters();
+    }
 }
 
 void RundownMovieWidget::executeLoadPreview()
@@ -706,17 +688,13 @@ void RundownMovieWidget::executeClearVideolayer()
         }
     }
 
-    this->paused = false;
     this->loaded = false;
+    this->paused = false;
     this->playing = false;
+
     this->sendAutoPlay= false;
-
-    this->widgetOscTime->setPaused(this->paused);
-    QTimer::singleShot(500, this, [this]() {
-        resetOscWidget();
-    });
-
     this->hasSentAutoPlay = false;
+    this->widgetOscTime->reset();
 }
 
 void RundownMovieWidget::executeClearChannel()
@@ -758,17 +736,13 @@ void RundownMovieWidget::executeClearChannel()
         }
     }
 
-    this->paused = false;
     this->loaded = false;
+    this->paused = false;
     this->playing = false;
+
     this->sendAutoPlay= false;
-
-    this->widgetOscTime->setPaused(this->paused);
-    QTimer::singleShot(500, this, [this]() {
-        resetOscWidget();
-    });
-
     this->hasSentAutoPlay = false;
+    this->widgetOscTime->reset();
 }
 
 void RundownMovieWidget::checkGpiConnection()
@@ -1046,16 +1020,16 @@ void RundownMovieWidget::clipSubscriptionReceived(const QString& predicate, cons
     this->fileModel.setClip(arguments.at(0).toDouble());
     this->fileModel.setTotalClip(arguments.at(1).toDouble());
 
-    updateOscWidget();
+//    updateOscWidget();
 }
 
 void RundownMovieWidget::fpsSubscriptionReceived(const QString& predicate, const QList<QVariant>& arguments)
 {
     Q_UNUSED(predicate);
-
-    this->fileModel.setFramesPerSecond(arguments.at(0).toDouble());
-
-    updateOscWidget();
+    double fps = arguments.at(0).toDouble();
+    this->fileModel.setFramesPerSecond(fps);
+    currentCannelFPS = fps;
+//    updateOscWidget();
 }
 
 void RundownMovieWidget::nameSubscriptionReceived(const QString& predicate, const QList<QVariant>& arguments)
@@ -1070,61 +1044,9 @@ void RundownMovieWidget::nameSubscriptionReceived(const QString& predicate, cons
 
     this->fileModel.setName(arguments.at(0).toString());
 
-    updateOscWidget();
+//    updateOscWidget();
 }
 
-void RundownMovieWidget::resetOscWidget()
-{
-this->widgetOscTime->reset();
-}
-
-
-
-void RundownMovieWidget::updateOscWidget()
-{
-    double CurrentTime =0;
-    if (this->fileModel.getTime() > 0 && this->fileModel.getTotalTime() > 0 &&
-        !this->fileModel.getName().isEmpty() && this->fileModel.getFramesPerSecond() > 0)
-    {
-        this->widgetOscTime->setFramesPerSecond(this->fileModel.getFramesPerSecond());
-        qDebug("widgetOscTime FPS is %f ", this->fileModel.getFramesPerSecond());
-        this->widgetOscTime->setProgress(this->fileModel.getTime() - this->fileModel.getClip());
-
-        if (this->reverseOscTime && this->fileModel.getTime() > 0)
-        {
-            CurrentTime = this->fileModel.getTotalTime() - (this->fileModel.getTime() - this->fileModel.getClip());
-        }
-        else
-        {
-            CurrentTime = this->fileModel.getTime() - this->fileModel.getClip();
-        }
-        this->widgetOscTime->setTime(CurrentTime);
-        //  code for TC **************************
-        EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(CurrentTime,this->fileModel.getFramesPerSecond(),this->command.getChannel(),this->command.getVideolayer() ));
-        //  code for TC **************************
-
-
-        this->widgetOscTime->setInOutTime(this->fileModel.getClip(),
-                                          this->fileModel.getTotalTime() - (this->fileModel.getTotalTime() - this->fileModel.getTotalClip()));
-
-        if (this->sendAutoPlay && !this->hasSentAutoPlay)
-        {
-            EventManager::getInstance().fireAutoPlayRundownItemEvent(AutoPlayRundownItemEvent(this));
-
-            this->sendAutoPlay = false;
-            this->hasSentAutoPlay = true;
-
-            qDebug("Dispatched AutoPlay event");
-        }
-
-        this->playing = true;
-
-        this->fileModel.setName("");
-        this->fileModel.setTime(0);
-        this->fileModel.setTotalTime(0);
-        this->fileModel.setFramesPerSecond(0);
-    }
-}
 
 void RundownMovieWidget::pausedSubscriptionReceived(const QString& predicate, const QList<QVariant>& arguments)
 {
@@ -1233,9 +1155,79 @@ void RundownMovieWidget::clearChannelControlSubscriptionReceived(const QString& 
         executeCommand(Playout::PlayoutType::ClearChannel);
 }
 
+void RundownMovieWidget::resetOscWidget()
+{
+this->widgetOscTime->reset();
+}
+
+
+
+void RundownMovieWidget::updateOscWidget()
+{
+    double CurrentTime =0;
+    if (this->fileModel.getTime() > 0 && this->fileModel.getTotalTime() > 0 &&
+            !this->fileModel.getName().isEmpty() && this->fileModel.getFramesPerSecond() > 0)
+    {   if (this->playing)
+        {
+            if (this->reverseOscTime && this->fileModel.getTime() > 0)
+            {
+                CurrentTime = this->fileModel.getTotalTime() - (this->fileModel.getTime() - this->fileModel.getClip());
+            }
+            else
+            {
+                CurrentTime = this->fileModel.getTime() - this->fileModel.getClip();
+            }
+            //  code for TC **************************
+            EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(CurrentTime,this->fileModel.getFramesPerSecond(),this->command.getChannel(),this->command.getVideolayer() ));
+            //  code for TC **************************
+            this->widgetOscTime->setFramesPerSecond(this->fileModel.getFramesPerSecond());
+            this->widgetOscTime->setTime(CurrentTime);
+            this->widgetOscTime->setInOutTime(this->fileModel.getClip(),
+                                              this->fileModel.getTotalTime() - (this->fileModel.getTotalTime() - this->fileModel.getTotalClip()));
+            this->widgetOscTime->setProgress(this->fileModel.getTime() - this->fileModel.getClip());
+        }
+        if (this->sendAutoPlay && !this->hasSentAutoPlay)
+        {
+            EventManager::getInstance().fireAutoPlayRundownItemEvent(AutoPlayRundownItemEvent(this));
+
+            this->sendAutoPlay = false;
+            this->hasSentAutoPlay = true;
+        }
+
+        this->fileModel.setName("");
+        this->fileModel.setTime(0);
+        this->fileModel.setTotalTime(0);
+        this->fileModel.setFramesPerSecond(0);
+
+        if(this->timeStamp == 0) QTimer::singleShot(300, this, SLOT(checkState()));
+        this->timeStamp =QDateTime::currentMSecsSinceEpoch();
+    }
+}
+
 double RundownMovieWidget::getFramePerSecond(void)
 {
-//    return this->fileModel.getFramesPerSecond();
     const QStringList& channelFormats = DatabaseManager::getInstance().getDeviceByName(this->model.getDeviceName()).getChannelFormats().split(",");
    return DatabaseManager::getInstance().getFormat(channelFormats[this->command.getChannel() - 1]).getFramesPerSecond().toDouble();
+}
+
+void RundownMovieWidget::checkState()
+{
+    qint64 currentTimeStamp = QDateTime::currentMSecsSinceEpoch();
+    if (((currentTimeStamp - this->timeStamp) >= 300) && (this->timeStamp != 0)){
+        this->widgetOscTime->reset();
+        this->playing = false;
+        timeStamp = 0;
+        return;
+    }
+    QTimer::singleShot(300, this, SLOT(checkState()));
+}
+
+void RundownMovieWidget::setCounters(){
+    double fps = currentCannelFPS;
+    double TC = Timecode::toTime(this->getLibraryModel()->getTimecode(), fps);
+    EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(TC, fps, this->command.getChannel(), this->command.getVideolayer() ));
+    this->widgetOscTime->setFramesPerSecond(fps);
+    this->widgetOscTime->setTime(TC);
+    this->widgetOscTime->setInOutTime(0, 1);
+    this->widgetOscTime->setProgress(0);
 }
