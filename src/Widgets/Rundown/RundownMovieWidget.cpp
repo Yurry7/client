@@ -514,7 +514,7 @@ void RundownMovieWidget::executePlay()
         if (this->command.getAutoPlay())
             this->sendAutoPlay= true;
         this->timeStamp = 0;
-        updateOscWidget();
+//        updateOscWidget();
     }
 }
 
@@ -1199,7 +1199,7 @@ void RundownMovieWidget::updateOscWidget()
         this->fileModel.setTotalTime(0);
         this->fileModel.setFramesPerSecond(0);
 
-        if(this->timeStamp == 0) QTimer::singleShot(300, this, SLOT(checkState()));
+        if(this->timeStamp == 0) QTimer::singleShot(500, this, SLOT(checkState()));
         this->timeStamp =QDateTime::currentMSecsSinceEpoch();
     }
 }
@@ -1213,13 +1213,13 @@ double RundownMovieWidget::getFramePerSecond(void)
 void RundownMovieWidget::checkState()
 {
     qint64 currentTimeStamp = QDateTime::currentMSecsSinceEpoch();
-    if (((currentTimeStamp - this->timeStamp) >= 300) && (this->timeStamp != 0)){
+    if (((currentTimeStamp - this->timeStamp) >= 500) && (this->timeStamp != 0)){
         this->widgetOscTime->reset();
         this->playing = false;
         timeStamp = 0;
         return;
     }
-    QTimer::singleShot(300, this, SLOT(checkState()));
+    QTimer::singleShot(500, this, SLOT(checkState()));
 }
 
 void RundownMovieWidget::setCounters(){
