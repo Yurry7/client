@@ -1033,7 +1033,8 @@ void RundownTreeWidget::itemSelectionChanged()
     }
 
 //----------- code for TC sel ----------
-    this->DurationOfSelected();
+    if(this->timeStamp == 0) QTimer::singleShot(1000, this, SLOT(checkState()));
+    this->timeStamp =QDateTime::currentMSecsSinceEpoch();
 //-------- end of code for TC sel --------
 
     EventManager::getInstance().fireSaveAsPresetMenuEvent(SaveAsPresetMenuEvent(true));
@@ -2149,8 +2150,8 @@ void RundownTreeWidget::DurationOfSelected (void)
                     QWidget* currentGroupItemWidget = this->treeWidgetRundown->itemWidget(GroupChildItem, 0);
                     if (GroupChildItem != NULL && currentGroupItemWidget != NULL)
                     {
-                        if (fps == 0) fps = dynamic_cast<RundownMovieWidget*>(currentGroupItemWidget)->getFramePerSecond();
-                        qDebug("Current group clip FPS is %f ", fps);
+                        fps = dynamic_cast<RundownMovieWidget*>(currentGroupItemWidget)->getFramePerSecond();
+//                        qDebug("Current group clip FPS is %f ", fps);
                         model = dynamic_cast<AbstractRundownWidget*>(currentGroupItemWidget)->getLibraryModel();
                         double TCint = 0;
                         QString TCstr = model->getTimecode();
@@ -2173,7 +2174,7 @@ void RundownTreeWidget::DurationOfSelected (void)
             }  //End of the Group
             else
             {
-                if (fps == 0) fps = dynamic_cast<RundownMovieWidget*>(currentItemWidget)->getFramePerSecond();
+                fps = dynamic_cast<RundownMovieWidget*>(currentItemWidget)->getFramePerSecond();
                 qDebug("Current clip FPS is %f ", fps);
                 model = dynamic_cast<AbstractRundownWidget*>(currentItemWidget)->getLibraryModel();
                 double TCint = 0;
@@ -2197,4 +2198,15 @@ void RundownTreeWidget::DurationOfSelected (void)
         }
     }
     EventManager::getInstance().fireDurationSelectedEvent(DurationSelectedEvent(selectedDuration, fromCurrentDuration, fps));
+}
+
+void RundownTreeWidget::checkState()
+{
+    qint64 currentTimeStamp = QDateTime::currentMSecsSinceEpoch();
+    if (((currentTimeStamp - this->timeStamp) >= 1000) && (this->timeStamp != 0)){
+        this->DurationOfSelected();
+        timeStamp = 0;
+        return;
+    }
+    QTimer::singleShot(1000, this, SLOT(checkState()));
 }

@@ -1,5 +1,5 @@
 #include "RundownMovieWidget.h"
-
+#include "RundownTreeWidget.h"
 #include "Global.h"
 
 #include "DatabaseManager.h"
@@ -86,7 +86,7 @@ RundownMovieWidget::RundownMovieWidget(const LibraryModel& model, QWidget* paren
     checkDeviceConnection();
 
     configureOscSubscriptions();
-    currentCannelFPS = this->fileModel.getFramesPerSecond();
+
     this->widgetOscTime->setStartTime(this->model.getTimecode(), this->reverseOscTime);
 }
 
@@ -390,7 +390,7 @@ bool RundownMovieWidget::executeCommand(Playout::PlayoutType type)
                     this->command.getDelay(),
                     this->command.getDuration(),
                     this->delayType,
-                    DatabaseManager::getInstance().getFormat(channelFormats[this->command.getChannel() - 1]).getFramesPerSecond().toDouble());
+                    this->fileModel.getFramesPerSecond());
             }
         }
     }
@@ -513,8 +513,6 @@ void RundownMovieWidget::executePlay()
 
         if (this->command.getAutoPlay())
             this->sendAutoPlay= true;
-        this->timeStamp = 0;
-//        updateOscWidget();
     }
 }
 
@@ -1019,8 +1017,6 @@ void RundownMovieWidget::clipSubscriptionReceived(const QString& predicate, cons
 
     this->fileModel.setClip(arguments.at(0).toDouble());
     this->fileModel.setTotalClip(arguments.at(1).toDouble());
-
-//    updateOscWidget();
 }
 
 void RundownMovieWidget::fpsSubscriptionReceived(const QString& predicate, const QList<QVariant>& arguments)
@@ -1028,23 +1024,33 @@ void RundownMovieWidget::fpsSubscriptionReceived(const QString& predicate, const
     Q_UNUSED(predicate);
     double fps = arguments.at(0).toDouble();
     this->fileModel.setFramesPerSecond(fps);
-    currentCannelFPS = fps;
-//    updateOscWidget();
 }
 
 void RundownMovieWidget::nameSubscriptionReceived(const QString& predicate, const QList<QVariant>& arguments)
 {
     Q_UNUSED(predicate);
 
-    QString name = arguments.at(0).toString();
-    name.remove(name.lastIndexOf('.'), name.length()); // Remove extension.
+    if (this->playing){
+        QString name = arguments.at(0).toString();
+        name.remove(name.lastIndexOf('.'), name.length()); // Remove extension.
+        if (this->model.getName().toLower() != name.toLower()){
+            if (nameSetted){                // if this file was played
 
-    if (this->model.getName().toLower() != name.toLower())
-        return; // Wrong file.
+                this->playing = false;
 
-    this->fileModel.setName(arguments.at(0).toString());
+                this->sendAutoPlay= false;
+                this->hasSentAutoPlay = false;
 
-//    updateOscWidget();
+                this->widgetOscTime->reset();
+
+                nameSetted = false;
+            }
+            return; // Wrong file.
+        }
+
+        this->fileModel.setName(arguments.at(0).toString());
+        nameSetted = true;
+    }
 }
 
 
@@ -1165,8 +1171,9 @@ this->widgetOscTime->reset();
 void RundownMovieWidget::updateOscWidget()
 {
     double CurrentTime =0;
+    double fps = this->fileModel.getFramesPerSecond();
     if (this->fileModel.getTime() > 0 && this->fileModel.getTotalTime() > 0 &&
-            !this->fileModel.getName().isEmpty() && this->fileModel.getFramesPerSecond() > 0)
+            !this->fileModel.getName().isEmpty() && fps > 0)
     {   if (this->playing)
         {
             if (this->reverseOscTime && this->fileModel.getTime() > 0)
@@ -1178,9 +1185,9 @@ void RundownMovieWidget::updateOscWidget()
                 CurrentTime = this->fileModel.getTime() - this->fileModel.getClip();
             }
             //  code for TC **************************
-            EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(CurrentTime,this->fileModel.getFramesPerSecond(),this->command.getChannel(),this->command.getVideolayer() ));
+            EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(CurrentTime,fps,this->command.getChannel(),this->command.getVideolayer() ));
             //  code for TC **************************
-            this->widgetOscTime->setFramesPerSecond(this->fileModel.getFramesPerSecond());
+            this->widgetOscTime->setFramesPerSecond(fps);
             this->widgetOscTime->setTime(CurrentTime);
             this->widgetOscTime->setInOutTime(this->fileModel.getClip(),
                                               this->fileModel.getTotalTime() - (this->fileModel.getTotalTime() - this->fileModel.getTotalClip()));
@@ -1189,7 +1196,6 @@ void RundownMovieWidget::updateOscWidget()
         if (this->sendAutoPlay && !this->hasSentAutoPlay)
         {
             EventManager::getInstance().fireAutoPlayRundownItemEvent(AutoPlayRundownItemEvent(this));
-
             this->sendAutoPlay = false;
             this->hasSentAutoPlay = true;
         }
@@ -1197,33 +1203,16 @@ void RundownMovieWidget::updateOscWidget()
         this->fileModel.setName("");
         this->fileModel.setTime(0);
         this->fileModel.setTotalTime(0);
-        this->fileModel.setFramesPerSecond(0);
-
-        if(this->timeStamp == 0) QTimer::singleShot(500, this, SLOT(checkState()));
-        this->timeStamp =QDateTime::currentMSecsSinceEpoch();
     }
 }
 
 double RundownMovieWidget::getFramePerSecond(void)
 {
-    const QStringList& channelFormats = DatabaseManager::getInstance().getDeviceByName(this->model.getDeviceName()).getChannelFormats().split(",");
-   return DatabaseManager::getInstance().getFormat(channelFormats[this->command.getChannel() - 1]).getFramesPerSecond().toDouble();
-}
-
-void RundownMovieWidget::checkState()
-{
-    qint64 currentTimeStamp = QDateTime::currentMSecsSinceEpoch();
-    if (((currentTimeStamp - this->timeStamp) >= 500) && (this->timeStamp != 0)){
-        this->widgetOscTime->reset();
-        this->playing = false;
-        timeStamp = 0;
-        return;
-    }
-    QTimer::singleShot(500, this, SLOT(checkState()));
+   return this->fileModel.getFramesPerSecond();
 }
 
 void RundownMovieWidget::setCounters(){
-    double fps = currentCannelFPS;
+    double fps = this->fileModel.getFramesPerSecond();
     double TC = Timecode::toTime(this->getLibraryModel()->getTimecode(), fps);
     EventManager::getInstance().fireDurationPlayedEvent(DurationPlayedEvent(TC, fps, this->command.getChannel(), this->command.getVideolayer() ));
     this->widgetOscTime->setFramesPerSecond(fps);

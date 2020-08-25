@@ -135,7 +135,9 @@ class WIDGETS_EXPORT RundownTreeWidget : public QWidget, Ui::RundownTreeWidget
         void DurationOfSelected (void);
         QString colorLookup(const QString& color, bool reverse) const;
         double fps = 25.0;
+        qint64 timeStamp = 0;
 
+        Q_SLOT void checkState();
         Q_SLOT void addAtemFadeToBlackItem();
         Q_SLOT void addPlayoutCommandItem();
         Q_SLOT void addCustomCommandItem();
